@@ -34,7 +34,15 @@ For detailed evaluation guidelines, please refer to the following documentation:
 
 ### Requirements
 
-We recommend using Python 3.10. Install the required dependencies with:
+We recommend using Python 3.12. Install the required dependencies with uv:
+
+```bash
+uv sync --python 3.12
+```
+
+Then run the evaluation script with `uv run python evaluate.py`.
+
+Alternatively, install dependencies with pip:
 
 ```bash
 pip install -r requirements.txt

@@ -3,6 +3,7 @@ import json
 import sys
 import faulthandler
 import platform
+import types
 
 # used for debugging to time steps
 from datetime import datetime
@@ -17,8 +18,6 @@ from io import StringIO
 
 # used for testing the code that reads from input
 from unittest.mock import patch, mock_open
-
-from pyext import RuntimeModule
 
 from enum import Enum
 
@@ -40,6 +39,13 @@ def timeout_handler(signum, frame):
 
 signal.signal(signal.SIGALRM, timeout_handler)
 # timeout = 6  # seconds
+
+
+def runtime_module_from_string(name: str, filename: str, source: str):
+    module = types.ModuleType(name)
+    module.__file__ = filename
+    exec(compile(source, filename or name, "exec"), module.__dict__)
+    return module
 
 
 # used to capture stdout as a list
@@ -111,7 +117,7 @@ def run_test(sample, test=None, debug=False, timeout=6):
                 print(f"sol = {sol}", flush=True)
             signal.alarm(timeout)
             try:
-                tmp_sol = RuntimeModule.from_string("tmp_sol", "", sol)
+                tmp_sol = runtime_module_from_string("tmp_sol", "", sol)
                 if "class Solution" not in test:
                     tmp = tmp_sol
                 else:
@@ -175,7 +181,7 @@ def run_test(sample, test=None, debug=False, timeout=6):
             method_name = "code"
             signal.alarm(timeout)
             try:
-                tmp_sol = RuntimeModule.from_string("tmp_sol", "", sol)
+                tmp_sol = runtime_module_from_string("tmp_sol", "", sol)
                 tmp = tmp_sol
                 signal.alarm(0)
             except Exception as e:

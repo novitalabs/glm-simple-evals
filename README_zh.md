@@ -31,7 +31,15 @@ GLM-Simple-Evals 是智谱 AI 内部使用的大语言模型评测工具集，�
 
 ### 环境要求
 
-推荐使用 Python 3.10 环境。运行以下命令安装所需依赖：
+推荐使用 Python 3.12 环境。使用 uv 安装所需依赖：
+
+```bash
+uv sync --python 3.12
+```
+
+之后可通过 `uv run python evaluate.py` 运行评测脚本。
+
+也可以继续使用 pip 安装依赖：
 
 ```bash
 pip install -r requirements.txt
