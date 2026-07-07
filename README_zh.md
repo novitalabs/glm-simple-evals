@@ -112,6 +112,7 @@ python3 evaluate.py \
 - `--zai_api_key`: 智谱BigModel平台的API Key
 - `--openai_api_key`: 其他兼容OpenAI接口的供应商的API Key
 - `--openai_base_url`: 其他兼容OpenAI接口的供应商的Url
+- `--extra-headers`: 以 JSON 对象格式传入的额外 HTTP headers，用于兼容 OpenAI 的请求
 - `--save_dir`: 评测结果保存目录
 - `--tasks`: 评测任务
 - `--proc_num`: 并发进程数

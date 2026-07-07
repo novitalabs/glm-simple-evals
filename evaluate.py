@@ -1,5 +1,6 @@
 import json
 import os
+import sys
 
 from functools import partial
 import random
@@ -44,6 +45,12 @@ if __name__ == "__main__":
         type=str,
         default=None,
         help="The base url of the openai-sdk",
+    )
+    parser.add_argument(
+        "--extra-headers",
+        type=str,
+        default=None,
+        help="Extra HTTP headers as a JSON object.",
     )
     parser.add_argument(
         "--checker_model_name",
@@ -147,6 +154,23 @@ if __name__ == "__main__":
     args = parser.parse_args()
     debug = args.debug
 
+    extra_headers = {}
+    if args.extra_headers:
+        try:
+            extra_headers = json.loads(args.extra_headers)
+        except json.JSONDecodeError as e:
+            print(f"Error: failed to parse --extra-headers JSON: {e}", file=sys.stderr)
+            sys.exit(1)
+        if not isinstance(extra_headers, dict) or not all(
+            isinstance(k, str) and isinstance(v, str)
+            for k, v in extra_headers.items()
+        ):
+            print(
+                "Error: --extra-headers must be a JSON object with string keys and string values",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+
     os.makedirs(args.save_dir, exist_ok=True)
 
     if args.checker_model_name is None:
@@ -161,6 +185,7 @@ if __name__ == "__main__":
             model=args.checker_model_name,
             temperature=0.0,
             max_tokens=1024,
+            extra_headers=extra_headers,
         )
     elif args.checker_model_name in ["gpt-4o"]:
         equality_checker = OpenAISampler(
@@ -168,6 +193,7 @@ if __name__ == "__main__":
             url=args.checker_url,
             model=args.checker_model_name,
             max_tokens=4096,
+            extra_headers=extra_headers,
         )
     else:
         raise ValueError(f"Unknown equality checker model {args.checker_model_name}")
@@ -190,6 +216,7 @@ if __name__ == "__main__":
             stream=args.stream,
             temperature=args.temperature,
             top_p=args.top_p,
+            extra_headers=extra_headers,
         )
     else:
         raise ValueError(f"Unknown backbone {args.backbone}")

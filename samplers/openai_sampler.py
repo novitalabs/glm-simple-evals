@@ -20,16 +20,19 @@ class OpenAISampler(SamplerBase):
         max_tokens: int = 4096,
         stream: bool = False,
         top_p: float = 1.0,
+        extra_headers: dict[str, str] | None = None,
     ):
         self.system_message = system_message
         self.temperature = temperature
         self.max_tokens = max_tokens
         self.url = url
         self.model = model
-        if not url:
-            self.client = OpenAI(api_key=api_key, timeout=360)
-        else:
-            self.client = OpenAI(api_key=api_key, base_url=url, timeout=360)
+        args = {"api_key": api_key, "timeout": 360}
+        if url:
+            args["base_url"] = url
+        if extra_headers:
+            args["default_headers"] = extra_headers
+        self.client = OpenAI(**args)
         self.stream = stream
         self.top_p = top_p
 

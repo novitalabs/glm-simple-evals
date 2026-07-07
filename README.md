@@ -115,6 +115,7 @@ The following are descriptions of commonly used parameters in the evaluation scr
 - `--zai_api_key`: API key for Z.AI API platform
 - `--openai_api_key`: API key for other OpenAI-compatible providers
 - `--openai_base_url`: API URL for other OpenAI-compatible providers
+- `--extra-headers`: Extra HTTP headers as a JSON object for OpenAI-compatible requests
 - `--save_dir`: Output directory for evaluation results
 - `--tasks`: Evaluation benchmarks to run
 - `--proc_num`: Number of concurrent processes
