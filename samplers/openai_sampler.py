@@ -75,10 +75,17 @@ class OpenAISampler(SamplerBase):
                     top_p=top_p,
                 )
                 for chunk in chat_completion_res:
-                    if chunk.choices[0].delta.reasoning_content:
-                        reasoning += chunk.choices[0].delta.reasoning_content
-                    if chunk.choices[0].delta.content:
-                        final += chunk.choices[0].delta.content
+                    # 有些 chunk 不含 choices（如仅带 usage 的收尾包）。
+                    if not chunk.choices:
+                        continue
+                    delta = chunk.choices[0].delta
+                    # reasoning_content 是 reasoning 类模型的扩展字段；非 reasoning
+                    # 端点的 delta 上没有该属性，用 getattr 安全取值。
+                    reasoning_content = getattr(delta, "reasoning_content", None)
+                    if reasoning_content:
+                        reasoning += reasoning_content
+                    if delta.content:
+                        final += delta.content
                 break
             except Exception as e:
                 final = ""
