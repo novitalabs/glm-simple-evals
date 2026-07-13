@@ -3,8 +3,6 @@ import os
 import sys
 
 from functools import partial
-import random
-import string
 
 from evals.aime_eval import AimeEval
 from evals.gpqa_eval import GPQAEval
@@ -18,12 +16,6 @@ from samplers.openai_sampler import OpenAISampler
 from samplers.zai_sampler import ZaiSampler
 
 import argparse
-
-
-def generate_random_string(length=8):
-    characters = string.ascii_letters + string.digits
-    random_string = "".join(random.choice(characters) for _ in range(length))
-    return random_string
 
 
 if __name__ == "__main__":
@@ -55,7 +47,6 @@ if __name__ == "__main__":
     parser.add_argument(
         "--checker_model_name",
         type=str,
-        default="Meta-Llama-3.1-70B-Instruct",
         help="The name of the checker model",
     )
     parser.add_argument(
@@ -173,30 +164,21 @@ if __name__ == "__main__":
 
     os.makedirs(args.save_dir, exist_ok=True)
 
-    if args.checker_model_name is None:
-        args.checker_model_name = generate_random_string(32)
     extractor = None
-    if not args.checker_model_name:
-        equality_checker = None
-    elif args.checker_model_name in ["Meta-Llama-3.1-70B-Instruct"]:
-        equality_checker = OpenAISampler(
-            api_key="default",
-            url=args.checker_url,
-            model=args.checker_model_name,
-            temperature=0.0,
-            max_tokens=1024,
-            extra_headers=extra_headers,
+    if not args.checker_model_name or not args.checker_url or not args.checker_api_key:
+        raise ValueError(
+            "--checker_model_name, --checker_url and --checker_api_key are all required"
         )
-    elif args.checker_model_name in ["gpt-4o"]:
-        equality_checker = OpenAISampler(
-            api_key=args.checker_api_key,
-            url=args.checker_url,
-            model=args.checker_model_name,
-            max_tokens=4096,
-            extra_headers=extra_headers,
-        )
-    else:
-        raise ValueError(f"Unknown equality checker model {args.checker_model_name}")
+    equality_checker = OpenAISampler(
+        api_key=args.checker_api_key,
+        url=args.checker_url,
+        model=args.checker_model_name,
+        max_tokens=args.max_length,
+        temperature=args.temperature,
+        top_p=args.top_p,
+        stream=args.stream,
+        extra_headers=extra_headers,
+    )
 
     if args.backbone == "zai":
         sampler = ZaiSampler(
