@@ -124,7 +124,10 @@ def process_func(sampler, judge_sampler: SamplerBase, row: dict):
     row["judgement"] = judgement
     row["accuracy"] = accuracy
     row["confidence"] = confidence
-    return SingleEvalResult(score=accuracy, metrics={"confidence": confidence}), row
+    return (
+        SingleEvalResult(score=accuracy * 100, metrics={"confidence": confidence}),
+        row,
+    )
 
 
 # source: https://github.com/centerforaisafety/hle/blob/main/hle_eval/run_judge_results.py#L97
@@ -201,7 +204,8 @@ class HLEEval(Eval):
         results, response_data = [x[0] for x in results], [x[1] for x in results]
 
         # source: https://github.com/centerforaisafety/hle/blob/main/hle_eval/run_judge_results.py#L148
-        correct = np.array([item.score for item in results])
+        # item.score 现为百分制(0/100)，此处还原为 0/1 供校准与 accuracy 统计使用
+        correct = np.array([item.score / 100 for item in results])
         confidence = np.array([item.metrics["confidence"] for item in results])
         n = len(self.examples)
         accuracy = round(100 * sum(correct) / n, 2)

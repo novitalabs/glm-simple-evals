@@ -456,4 +456,5 @@ class SciCodeEval(Eval):
 
         sub_score, main_score = test_code(self.examples)
 
-        return EvalResult(sub_score, {"main_score": main_score}), None
+        # sub_score/main_score 原为 0-1 比例，统一为百分制(0-100)与其他 eval 对齐
+        return EvalResult(sub_score * 100, {"main_score": main_score * 100}), None
