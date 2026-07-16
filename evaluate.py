@@ -233,7 +233,7 @@ if __name__ == "__main__":
         "aime2024": partial(
             AimeEval,
             equality_checker=equality_checker,
-            num_examples=1 if debug else -1,
+            num_examples=3 if debug else -1,
             year=2024,
             data_dir=args.data_dir,
             proc_num=args.proc_num,
@@ -245,7 +245,7 @@ if __name__ == "__main__":
         "aime2025": partial(
             AimeEval,
             equality_checker=equality_checker,
-            num_examples=30 if debug else -1,
+            num_examples=3 if debug else -1,
             year=2025,
             data_dir=args.data_dir,
             proc_num=args.proc_num,
