@@ -14,7 +14,7 @@ import signal
 import numpy as np
 
 # for capturing the stdout
-from io import StringIO
+from io import StringIO, BytesIO
 
 # used for testing the code that reads from input
 from unittest.mock import patch, mock_open
@@ -583,6 +583,18 @@ def stripped_string_compare(s1, s2):
     return s1 == s2
 
 
+class _StdinWithBuffer(StringIO):
+    """StringIO 版 stdin，额外暴露 .buffer(BytesIO)。
+
+    竞赛代码常用 sys.stdin.buffer.read() 做快速读入，而原始 mock 用的
+    StringIO 没有 .buffer 属性，会抛 AttributeError 导致该类解法被误判 0 分。
+    """
+
+    def __init__(self, inputs: str):
+        super().__init__(inputs)
+        self.buffer = BytesIO(inputs.encode("utf-8"))
+
+
 def call_method(method, inputs):
 
     if isinstance(inputs, list):
@@ -594,7 +606,7 @@ def call_method(method, inputs):
 
     # @patch('builtins.input', side_effect=inputs.split("\n"))
     @patch("builtins.open", mock_open(read_data=inputs))
-    @patch("sys.stdin", StringIO(inputs))
+    @patch("sys.stdin", _StdinWithBuffer(inputs))
     @patch("sys.stdin.readline", lambda *args: next(inputs_line_iterator))
     @patch("sys.stdin.readlines", lambda *args: inputs.split("\n"))
     @patch("sys.stdin.read", lambda *args: inputs)
