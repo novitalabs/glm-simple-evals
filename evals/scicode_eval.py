@@ -48,17 +48,18 @@ def extract_python_script(response: str):
 
 
 def extract_function_name(function_header):
-    pattern = r"\bdef\s+(\w+)\s*\("
-    match = re.search(pattern, function_header)
+    # 取 header 里第一个出现的 def / class 定义名。
+    # 注意两点：
+    #  1) 必须按“谁先出现”判断，而非无脑先 class 后 def——因为函数的 docstring
+    #     里可能出现 "class ... defined before" 之类文字，全局搜 class 会误命中。
+    #  2) 当 header 是 `class Slater:`（体内含 def __init__）时，若先匹配 def 会
+    #     误取 __init__，导致 get_function_from_code 抽出脱离类壳的裸方法、丢失
+    #     类名，后续步骤引用该类时 NameError。
+    # 用一个组合正则一次性按位置取第一个 def/class 定义，class 名后不强制括号。
+    match = re.search(r"\b(?:def\s+(\w+)\s*\(|class\s+(\w+))", function_header)
     if match:
-        return match.group(1)
-    else:
-        pattern = r"\bclass\s+(\w+)\s*\("
-        match = re.search(pattern, function_header)
-        if match:
-            return match.group(1)
-        else:
-            raise ValueError("Function name or class name not found.")
+        return match.group(1) or match.group(2)
+    raise ValueError("Function name or class name not found.")
 
 
 def get_function_from_code(code_string, function_name):
@@ -311,7 +312,8 @@ from scicode.parse.parse import process_hdf5_to_tuple
             return 0
         except subprocess.CalledProcessError as e:
             print(f"Error running script {script_path}: {e}")
-            print(e.output)
+            # 真正的 traceback 在 stderr；e.output(stdout) 通常为空
+            print(e.stderr or e.output)
             return 1
         except subprocess.TimeoutExpired as e:
             print(f"Runtime error while running script {script_path}: {e}")
