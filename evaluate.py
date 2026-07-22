@@ -226,8 +226,8 @@ if __name__ == "__main__":
         "gpqa": partial(
             GPQAEval,
             equality_checker=equality_checker,
-            n_repeats=1 if debug else 4,
-            num_examples=5 if debug else 100,
+            n_repeats=1 if debug else 2,
+            num_examples=5 if debug else None,
             data_dir=args.data_dir,
             proc_num=args.proc_num,
             auto_extract_answer=args.auto_extract_answer,
