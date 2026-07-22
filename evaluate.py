@@ -203,10 +203,12 @@ if __name__ == "__main__":
     else:
         raise ValueError(f"Unknown backbone {args.backbone}")
 
+    # default num_examples:
+    # lcb: 322, scicode: 80, gpqa: 198, aime24: 30, aime25: 30, math500: 500, mmlu_pro: 12032, hle: 2158
     eval_dict = {
         "lcb": partial(
             LiveCodeBenchEval,
-            num_examples=1 if debug else -1,
+            num_examples=1 if debug else 160,
             data_dir=args.data_dir,
             proc_num=args.proc_num,
             num_repeat=1 if debug else 2,
@@ -217,15 +219,15 @@ if __name__ == "__main__":
             num_examples=5 if debug else -1,
             data_dir=args.data_dir,
             proc_num=args.proc_num,
-            num_repeat=3,
+            num_repeat=2,
             save_dir=args.save_dir,
             with_background=not args.sci_without_background,
         ),
         "gpqa": partial(
             GPQAEval,
             equality_checker=equality_checker,
-            n_repeats=1 if debug else 8,
-            num_examples=5 if debug else None,
+            n_repeats=1 if debug else 4,
+            num_examples=5 if debug else 100,
             data_dir=args.data_dir,
             proc_num=args.proc_num,
             auto_extract_answer=args.auto_extract_answer,
@@ -260,19 +262,19 @@ if __name__ == "__main__":
             num_examples=5 if debug else -1,
             data_dir=args.data_dir,
             proc_num=args.proc_num,
-            n_repeats=3,
+            n_repeats=2,
             extractor=extractor,
         ),
         "mmlu_pro": partial(
             MMLUProEval,
-            num_examples=5 if debug else None,
+            num_examples=5 if debug else 2000,
             data_dir=args.data_dir,
             proc_num=args.proc_num,
         ),
         "hle": partial(
             HLEEval,
             equality_checker=equality_checker,
-            num_examples=5 if debug else None,
+            num_examples=5 if debug else 1000,
             data_dir=args.data_dir,
             proc_num=args.proc_num,
         ),
