@@ -4,6 +4,8 @@ from typing import Optional
 from openai import OpenAI
 from utils.types import MessageList, SamplerBase
 
+MAX_RETRIES = 10
+
 
 class OpenAISampler(SamplerBase):
     """
@@ -64,7 +66,7 @@ class OpenAISampler(SamplerBase):
 
         final = ""
         reasoning = ""
-        for _ in range(50):
+        for _ in range(MAX_RETRIES):
             try:
                 chat_completion_res = self.client.chat.completions.create(
                     model=self.model,
@@ -90,12 +92,12 @@ class OpenAISampler(SamplerBase):
             except Exception as e:
                 final = ""
                 print(f"Exception: {e}\nTraceback: {traceback.format_exc()}")
-                time.sleep(5)
+                time.sleep(2)
                 continue
 
         if final == "" and reasoning == "":
             print(
-                f"failed in get_resp_stream for 50 times, last exception: {e if 'e' in locals() else ''}"
+                f"failed in get_resp_stream for {MAX_RETRIES} times, last exception: {e if 'e' in locals() else ''}"
             )
             return ""
 

@@ -5,6 +5,8 @@ from typing import Optional
 from utils.types import MessageList, SamplerBase
 from zai import ZhipuAiClient
 
+MAX_RETRIES = 10
+
 
 class ZaiSampler(SamplerBase):
     """
@@ -55,7 +57,7 @@ class ZaiSampler(SamplerBase):
         top_p = top_p if top_p > 0 else self.top_p
         final = ""
         reasoning = ""
-        for _ in range(200):
+        for _ in range(MAX_RETRIES):
             try:
                 chat_completion_res = self.client.chat.completions.create(
                     model=self.model,
@@ -82,12 +84,12 @@ class ZaiSampler(SamplerBase):
             except Exception as e:
                 final = ""
                 print(f"Exception: {e}\nTraceback: {traceback.format_exc()}")
-                time.sleep(5)
+                time.sleep(2)
                 continue
 
         if final == "" and reasoning == "":
             print(
-                f"failed in get_resp_stream for 50 times, last exception: {e if 'e' in locals() else ''}"
+                f"failed in get_resp_stream for {MAX_RETRIES} times, last exception: {e if 'e' in locals() else ''}"
             )
             return ""
 
