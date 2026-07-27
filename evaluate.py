@@ -267,14 +267,14 @@ if __name__ == "__main__":
         ),
         "mmlu_pro": partial(
             MMLUProEval,
-            num_examples=5 if debug else 2000,
+            num_examples=5 if debug else 1000,
             data_dir=args.data_dir,
             proc_num=args.proc_num,
         ),
         "hle": partial(
             HLEEval,
             equality_checker=equality_checker,
-            num_examples=5 if debug else 1000,
+            num_examples=5 if debug else 500,
             data_dir=args.data_dir,
             proc_num=args.proc_num,
         ),
