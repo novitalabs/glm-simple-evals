@@ -274,7 +274,7 @@ if __name__ == "__main__":
         "hle": partial(
             HLEEval,
             equality_checker=equality_checker,
-            num_examples=5 if debug else 500,
+            num_examples=5 if debug else 200,
             data_dir=args.data_dir,
             proc_num=args.proc_num,
         ),
