@@ -127,6 +127,15 @@ if __name__ == "__main__":
         help="Whether to run the evaluation in debug mode",
     )
     parser.add_argument(
+        "--num-examples",
+        "--num_examples",
+        dest="num_examples",
+        type=int,
+        default=-1,
+        help="Limit the number of examples per task (-1 = the task's full set). "
+        "Ignored when --debug is set, which keeps its own tiny sample sizes.",
+    )
+    parser.add_argument(
         "--lcb_date", type=str, default="latest", help="The date of the lcb evaluation"
     )
     parser.add_argument(
@@ -203,12 +212,18 @@ if __name__ == "__main__":
     else:
         raise ValueError(f"Unknown backbone {args.backbone}")
 
-    # default num_examples:
+    # Full set sizes:
     # lcb: 322, scicode: 80, gpqa: 198, aime24: 30, aime25: 30, math500: 500, mmlu_pro: 12032, hle: 2158
+    #
+    # --num-examples caps every task; -1 means "no cap" and is normalised to
+    # None because several evals guard with a bare `if num_examples:`, where -1
+    # is truthy and would reach random.sample(examples, -1) and raise.
+    # --debug keeps its own hardcoded tiny sizes and ignores this flag.
+    limit = args.num_examples if args.num_examples is not None and args.num_examples > 0 else None
     eval_dict = {
         "lcb": partial(
             LiveCodeBenchEval,
-            num_examples=1 if debug else 160,
+            num_examples=1 if debug else limit,
             data_dir=args.data_dir,
             proc_num=args.proc_num,
             num_repeat=1 if debug else 2,
@@ -216,7 +231,7 @@ if __name__ == "__main__":
         ),
         "scicode": partial(
             SciCodeEval,
-            num_examples=5 if debug else -1,
+            num_examples=5 if debug else limit,
             data_dir=args.data_dir,
             proc_num=args.proc_num,
             num_repeat=2,
@@ -227,7 +242,7 @@ if __name__ == "__main__":
             GPQAEval,
             equality_checker=equality_checker,
             n_repeats=1 if debug else 2,
-            num_examples=5 if debug else None,
+            num_examples=5 if debug else limit,
             data_dir=args.data_dir,
             proc_num=args.proc_num,
             auto_extract_answer=args.auto_extract_answer,
@@ -235,7 +250,7 @@ if __name__ == "__main__":
         "aime2024": partial(
             AimeEval,
             equality_checker=equality_checker,
-            num_examples=3 if debug else -1,
+            num_examples=3 if debug else limit,
             year=2024,
             data_dir=args.data_dir,
             proc_num=args.proc_num,
@@ -247,7 +262,7 @@ if __name__ == "__main__":
         "aime2025": partial(
             AimeEval,
             equality_checker=equality_checker,
-            num_examples=3 if debug else -1,
+            num_examples=3 if debug else limit,
             year=2025,
             data_dir=args.data_dir,
             proc_num=args.proc_num,
@@ -259,7 +274,7 @@ if __name__ == "__main__":
         "math500": partial(
             MathEval,
             equality_checker=equality_checker,
-            num_examples=5 if debug else -1,
+            num_examples=5 if debug else limit,
             data_dir=args.data_dir,
             proc_num=args.proc_num,
             n_repeats=2,
@@ -267,14 +282,14 @@ if __name__ == "__main__":
         ),
         "mmlu_pro": partial(
             MMLUProEval,
-            num_examples=5 if debug else 1000,
+            num_examples=5 if debug else limit,
             data_dir=args.data_dir,
             proc_num=args.proc_num,
         ),
         "hle": partial(
             HLEEval,
             equality_checker=equality_checker,
-            num_examples=5 if debug else 200,
+            num_examples=5 if debug else limit,
             data_dir=args.data_dir,
             proc_num=args.proc_num,
         ),
