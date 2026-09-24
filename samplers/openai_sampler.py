@@ -42,6 +42,7 @@ class OpenAISampler(SamplerBase):
         temperature = temperature if temperature > 0 else self.temperature
         top_p = top_p if top_p > 0 else self.top_p
 
+        last_exc = None
         for _ in range(3):
             try:
                 chat_completion = self.client.chat.completions.create(
@@ -54,10 +55,11 @@ class OpenAISampler(SamplerBase):
                 output = chat_completion.choices[0].message.content
                 return output
             except Exception as e:
+                last_exc = repr(e)
                 print(f"Exception: {e}\nTraceback: {traceback.format_exc()}")
                 time.sleep(1)
                 continue
-        print(f"failed, last exception: {e if 'e' in locals() else ''}")
+        print(f"failed, last exception: {last_exc}")
         return ""
 
     def get_resp_stream(self, message_list, top_p=-1, temperature=-1):
@@ -66,6 +68,8 @@ class OpenAISampler(SamplerBase):
 
         final = ""
         reasoning = ""
+        last_exc = None
+        empty_rounds = 0
         for _ in range(MAX_RETRIES):
             try:
                 chat_completion_res = self.client.chat.completions.create(
@@ -88,16 +92,22 @@ class OpenAISampler(SamplerBase):
                         reasoning += reasoning_content
                     if delta.content:
                         final += delta.content
+                if not final and not reasoning:
+                    empty_rounds += 1
+                    time.sleep(2)
+                    continue
                 break
             except Exception as e:
                 final = ""
+                last_exc = repr(e)
                 print(f"Exception: {e}\nTraceback: {traceback.format_exc()}")
                 time.sleep(2)
                 continue
 
         if final == "" and reasoning == "":
             print(
-                f"failed in get_resp_stream for {MAX_RETRIES} times, last exception: {e if 'e' in locals() else ''}"
+                f"failed in get_resp_stream for {MAX_RETRIES} times, "
+                f"empty_rounds={empty_rounds}, last exception: {last_exc}"
             )
             return ""
 
